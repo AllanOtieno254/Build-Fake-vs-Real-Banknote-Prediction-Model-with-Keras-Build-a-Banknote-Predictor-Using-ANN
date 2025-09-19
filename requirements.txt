@@ -7,5 +7,5 @@ matplotlib
 seaborn
 gunicorn
 pickle-mixin
-ipykernel
-tensorflow-cpu==2.20.0
+
+

@@ -1,0 +1,138 @@
+{\rtf1\ansi\deff0
+{\fonttbl{\f0 Arial;}}
+\viewkind4\uc1\pard\fs24
+\b\fs36 Banknote Authentication System – User & Technical Documentation\b0\fs24\par\par
+\b\fs28 1. Executive Summary\b0\fs24\par\par
+This document explains how the Banknote Authentication System works, how the bank's staff can use it, and how your IT team can install, maintain, and integrate it. It is written for both non-technical users (tellers, branch managers) and technical staff (IT, data engineers).\par\par
+The system predicts whether a banknote is real or fake using a trained Artificial Neural Network (ANN). It accepts four numeric features (VWTI, SWTI, CWTI, EI) and returns a prediction of 'real' or 'fake'. A simple, user-friendly web interface is provided via a Flask application.\par\par
+\b\fs28 2. Purpose and Value to the Bank\b0\fs24\par\par
+The Banknote Authentication System automates the initial screening of physical banknotes. It can be used at branches, cash-handling centers, and teller desks to reduce the manual workload of staff and increase early detection of counterfeit notes. Benefits include:\par\par
+\bullet\tab Faster note checks, allowing staff to process transactions more quickly.\par
+\bullet\tab Increased detection accuracy compared to simple manual checks.\par
+\bullet\tab A low-cost, flexible solution that can scale to multiple branches.\par
+\bullet\tab Audit trail and logging options for suspicious note tracking and reporting.\par
+\b\fs28 3. Audience & Responsibilities\b0\fs24\par\par
+This document is intended for two primary audiences:\par\par
+\b\fs24 A. Non-technical Users (Tellers, Supervisors):\b0\fs24\par\par
+• Use the web interface to check notes. No technical setup is required for day-to-day operation.\par\par
+• Report any suspicious or inconsistent outputs to your branch manager and IT.\par\par
+\b\fs24 B. Technical Staff (IT, DevOps, Data Engineers):\b0\fs24\par\par
+• Install, configure and maintain the application and dependencies.\par\par
+• Monitor model performance, logs, and update the model when more labeled data is available.\par\par
+\b\fs28 4. How the System Works (Non-Technical Explanation)\b0\fs24\par\par
+The model is an Artificial Neural Network (ANN) that learned patterns from historic examples of real and fake banknotes. During training, the model studied many labeled examples so it could recognize subtle differences between real and fake notes.\par\par
+When a user provides the four input measurements into the web form, the app: \par\par
+\bullet\tab Validates the input values.\par
+\bullet\tab Scales those values so they match the scale the model expects (this ensures predictions are consistent).\par
+\bullet\tab Sends the values to the trained ANN which outputs a probability between 0 and 1.\par
+\bullet\tab If the probability is above a threshold (0.5 by default) the note is reported as 'real'; otherwise it is 'fake'.\par
+\b\fs28 5. Input Features – What They Mean\b0\fs24\par\par
+The model expects four numeric inputs:\par\par
+\bullet\tab VWTI – Variance Wavelet Transform Indicator (or a numeric feature derived from image or measurement).\par
+\bullet\tab SWTI – Skewness Wavelet Transform Indicator (a measure of asymmetry in a measured signal).\par
+\bullet\tab CWTI – Curtosis Wavelet Transform Indicator (a measure of the 'tailedness' of a distribution).\par
+\bullet\tab EI – Entropy Indicator (describes randomness or complexity in a measured signal).\par
+Note: Exact feature definitions depend on how the bank captures measurements. If the bank uses sensors or image-processing tools, these features should be computed consistently as done during the model training stage. Your technical team can update feature extraction code if needed.\par\par
+\b\fs28 6. How to Use the Web Interface (Step-by-Step for Non-Technical Staff)\b0\fs24\par\par
+This assumes the bank has the app deployed within the bank's network or accessed via a secure internal server.\par\par
+1. Open the web application in a browser (e.g., Google Chrome, Edge).\par
+1. Locate the form labeled 'Bank Note Prediction'.\par
+1. Enter the four numeric values (VWTI, SWTI, CWTI, EI) in the respective fields. Use values provided by the bank's measurement equipment.\par
+1. Click the 'Predict' button.\par
+1. Wait for the result. The app will display either: 'Real Note Prediction' (with an image) or 'Fake Note Prediction' (with an image).\par
+1. If a note is predicted as 'fake', follow bank policy: isolate the banknote, notify the supervisor, and follow legal/operational procedures.\par
+Important: This tool is a decision-support aid. Final action should follow bank operational policies and human verification.\par\par
+\b\fs28 7. Interpreting the Results\b0\fs24\par\par
+The model returns one of two outcomes: 'real' or 'fake'.\par\par
+\bullet\tab  'Real' – The model estimates the note is genuine. Continue normal operations but remain cautious if physical inspection raises any doubts.\par
+\bullet\tab  'Fake' – The model estimates the note is counterfeit. Immediately follow the bank's suspicious cash handling and reporting procedures.\par
+Confidence: Internally the model produces a probability (0–1). While the app displays the label, technical staff can configure it to show the probability as an extra indicator of confidence.\par\par
+\b\fs28 8. Example Scenario\b0\fs24\par\par
+A teller receives a 1000-unit note. They input the measured features into the web form and click Predict. If the application returns 'fake', the teller should not return the note to the customer and should follow the bank's escalation policy. If it returns 'real' but the teller still suspects fraud, they should escalate for manual inspection or use alternative verification equipment.\par\par
+\b\fs28 9. Installation and Setup (Technical Steps for IT Staff)\b0\fs24\par\par
+Below are the step-by-step commands and guidance to install and run the system on a Windows server or workstation. These commands assume the server has Python 3.10–3.13 installed. Adjust Python version as required.\par\par
+1) Open PowerShell or a terminal with administrative rights and navigate to the project folder.\par\par
+  • cd "C:\\Path\\To\\Project"\par\par
+2) Create a virtual environment (recommended):\par\par
+  • python -m venv venv\par\par
+3) Activate the virtual environment:\par\par
+  • PowerShell: & "venv\\Scripts\\Activate.ps1"\par\par
+  • CMD: venv\\Scripts\\activate.bat\par\par
+  • Linux/Mac: source venv/bin/activate\par\par
+4) Upgrade pip and supporting packages:\par\par
+  • python -m pip install --upgrade pip setuptools wheel\par\par
+5) Install required Python packages:\par\par
+  • pip install -r requirements.txt\par\par
+  Example requirements.txt contents:\par\par
+\f0\fs20 numpy\par pandas\par scikit-learn\par matplotlib\par seaborn\par flask\par tensorflow-cpu\par pickle-mixin\par ipykernel\fs24\par\par
+6) Ensure model files exist in the 'models' folder: model.h5 and scaler.pkl. Do not modify them unless retraining.\par\par
+7) Start the Flask web application (for development):\par\par
+  • python app.py\par\par
+  • The app will by default run on http://127.0.0.1:5000. For production, use a WSGI server listed below.\par\par
+\b\fs28 10. Production Deployment Recommendations\b0\fs24\par\par
+For reliable and secure production use, the IT team should deploy the app behind a proper web server and secure it:\par\par
+\bullet\tab Use a production WSGI server like Gunicorn (Linux) or Waitress/Hypercorn for Windows. Example (Linux): gunicorn -w 4 app:app\par
+\bullet\tab Place the app behind a reverse proxy such as Nginx or IIS for SSL termination, load balancing, and request handling.\par
+\bullet\tab Use HTTPS with valid certificates (internal CA or public CA certificate).\par
+\bullet\tab Run the application in a restricted network or VPN accessible only to bank staff.\par
+\bullet\tab Configure logging (application logs, access logs) and rotate logs regularly. Keep logs for a defined retention period per bank policy.\par
+\b\fs28 11. Integration Options (For Developers)\b0\fs24\par\par
+The Flask app currently exposes a web form for manual input. For integration with other bank systems (e.g., teller software or EPOS), a simple REST API endpoint can be created to accept feature values and return JSON with the prediction. Example JSON request:\par\par
+\f0\fs20 \{\par   "VWTI": 2.34,\par   "SWTI": -1.12,\par   "CWTI": 0.53,\par   "EI": 0.91\par \}\fs24\par\par
+Response example:\par\par
+\f0\fs20 \{\par   "prediction": "fake",\par   "probability": 0.12\par \}\fs24\par\par
+Batch processing: For large volumes of notes (e.g., cash processing centers), integrate a batch API or script that accepts CSV files, runs predictions, and returns a report with flagged items.\par\par
+\b\fs28 12. Security, Privacy & Data Governance\b0\fs24\par\par
+The bank must treat all data and models as sensitive assets. Follow your internal security policies. Key recommendations:\par\par
+\bullet\tab Access Control: Only authorized personnel should have permissions to run the app or access model files.\par
+\bullet\tab Encrypted Storage: Store model files, logs, and any captured data in encrypted volumes or storage services.\par
+\bullet\tab Network Security: Place the service behind firewalls and avoid exposing it to the public internet unless strictly necessary and protected.\par
+\bullet\tab Data Retention Policy: Decide how long prediction logs are retained. Keep only what is necessary for audits and investigations.\par
+\bullet\tab Personal Data: If any input or logs include personal customer details, ensure compliance with data protection laws (e.g., GDPR).\par
+\bullet\tab Regular Security Reviews: Add the system to periodic security reviews and vulnerability scans.\par
+\b\fs28 13. Model Maintenance & Retraining Plan\b0\fs24\par\par
+Over time the model may need retraining to maintain accuracy. Suggested plan:\par\par
+\bullet\tab Monitoring: Track the model’s prediction distribution and accuracy metrics using a small labeled validation set collected periodically.\par
+\bullet\tab Retraining Schedule: Consider retraining every 3–6 months or when a degradation in performance is observed.\par
+\bullet\tab Data Collection: Capture examples of falsely predicted notes (false positives and false negatives), label them manually, and include them in the next training cycle.\par
+\bullet\tab Versioning: Keep versioned backups of every trained model (with timestamp and training data summary).\par
+\bullet\tab Testing: Before deploying a new model, test it in a staging environment with representative data.\par
+\b\fs28 14. Troubleshooting & Frequently Seen Issues\b0\fs24\par\par
+Issue 1: 'Import tensorflow' or 'Pylance cannot resolve import' in VS Code\par\par
+  • Cause: TensorFlow not installed in the active virtual environment or VS Code is using a different interpreter.\par\par
+  • Fix: Activate the correct venv and run 'pip install tensorflow-cpu' or 'pip install -r requirements.txt'. Then select the venv interpreter in VS Code.\par\par
+Issue 2: 'pip install tensorflow' fails with long path error on Windows\par\par
+  • Cause: Windows long path support not enabled.\par\par
+  • Fix: Enable long path support through registry or install 'tensorflow-cpu' which has smaller path footprint. Restart after changing registry.\par\par
+Issue 3: Model returns unexpected predictions\par\par
+  • Cause: Inconsistent preprocessing (scaler mismatch) or incorrect feature values.\par\par
+  • Fix: Ensure scaler.pkl and model.h5 are used together and that inputs are scaled exactly as during training.\par\par
+Issue 4: 'Running cells requires ipykernel' when opening notebooks\par\par
+  • Fix: Install ipykernel in venv: python -m pip install ipykernel -U --force-reinstall and select kernel in VS Code.\par\par
+\b\fs28 15. Validation, Testing & Compliance\b0\fs24\par\par
+Before using the tool in production, the bank should carry out the following validation steps:\par\par
+\bullet\tab Acceptance Testing: Run the system on a curated test set of notes (real and fake) and compare results with expected labels.\par
+\bullet\tab Accuracy Certification: Obtain a minimum acceptable accuracy threshold (e.g., 95%) before allowing the system to be used operationally.\par
+\bullet\tab Audit Trail: Ensure logs include timestamp, input features, prediction result, and operator ID for any flagged note.\par
+\bullet\tab Regulatory Compliance: Confirm the use of automated detection tools adheres to national regulations regarding counterfeit handling and evidence preservation.\par
+\b\fs28 16. Limitations & Responsible Use\b0\fs24\par\par
+• This system is a decision-support tool, not a legally binding detection device. Human verification and bank operational procedures remain authoritative.\par\par
+• Model quality depends on the quality and representativeness of training data. If the bank uses different note types or newer counterfeit techniques, accuracy may drop.\par\par
+• Always verify results with additional hardware-based detectors or forensic examination for high-value or suspicious cases.\par\par
+\b\fs28 17. Next Steps and Recommendations\b0\fs24\par\par
+To get the most value from this solution, we recommend:\par\par
+\bullet\tab Pilot the system in a small number of branches to collect real-world feedback.\par
+\bullet\tab Create a labeled incident repository of misclassified notes for continuous improvement.\par
+\bullet\tab Build a secure API for integration into teller and cash management systems.\par
+\bullet\tab Schedule regular model reviews and retraining using new labeled examples.\par
+\bullet\tab Document any operational decisions and update this manual accordingly.\par
+\b\fs28 18. Appendix: Quick Commands (For IT)\b0\fs24\par\par
+\f0\fs20 Create & activate venv (Windows PowerShell):\par   python -m venv venv\par   & "venv\\Scripts\\Activate.ps1"\par Install dependencies:\par   python -m pip install --upgrade pip setuptools wheel\par   pip install -r requirements.txt\par Run app (development):\par   python app.py\par Production suggestion (Linux):\par   gunicorn -w 4 app:app --bind 0.0.0.0:8000\fs24\par\par
+\b\fs28 19. Support & Contact Information\b0\fs24\par\par
+If you need assistance or want to request new features or model retraining, please contact:\par\par
+\bullet\tab Lead Developer: Allan Otieno Akumu\par
+\bullet\tab Email: your.email@example.com\par
+\bullet\tab GitHub: https://github.com/AllanOtieno254\par
+\b\fs28 20. Final Notes\b0\fs24\par\par
+This documentation is provided to help non-technical users and technical staff understand and operate the Banknote Authentication System. Keep this document with your internal project records, update it after major changes, and use it during audits and training sessions.\par\par
+}

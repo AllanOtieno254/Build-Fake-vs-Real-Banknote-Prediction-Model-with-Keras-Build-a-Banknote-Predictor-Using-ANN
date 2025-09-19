@@ -1,7 +1,11 @@
+# requirements.txt
+flask
 numpy
 pandas
+scikit-learn
 matplotlib
 seaborn
-scikit-learn
-tensorflow
+gunicorn
 pickle-mixin
+ipykernel
+tensorflow-cpu==2.20.0
